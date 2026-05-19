@@ -19,7 +19,7 @@ export const sendLeadEmail = async ({ name, phone, email, category }) => {
 };
 
 /**
- * sendBookingEmail — fires on "Book Now" with full quote details
+ * sendBookingEmail — fires on "Book Now" with full quote details for  the client
  */
 export const sendBookingEmail = async ({
   contact,
