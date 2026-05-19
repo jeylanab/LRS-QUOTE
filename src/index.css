@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: #EAF6FD;
+    color: #002664;
+    font-family: 'Outfit', sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer utilities {
+  /* Staggered drop-in delays */
+  .delay-0   { animation-delay: 0ms; }
+  .delay-1   { animation-delay: 60ms; }
+  .delay-2   { animation-delay: 120ms; }
+  .delay-3   { animation-delay: 180ms; }
+  .delay-4   { animation-delay: 240ms; }
+  .delay-5   { animation-delay: 300ms; }
+  .delay-6   { animation-delay: 360ms; }
+  .delay-7   { animation-delay: 420ms; }
+
+  .animate-drop-in {
+    opacity: 0;
+    animation: dropIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .animate-fade-up {
+    opacity: 0;
+    animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .animate-shake {
+    animation: shake 0.4s ease both;
+  }
+}
+
+@keyframes dropIn {
+  0%   { opacity: 0; transform: translateY(-18px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes bounceSoft {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
