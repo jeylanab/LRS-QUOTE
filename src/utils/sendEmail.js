@@ -1,25 +1,31 @@
 // src/utils/sendEmail.js
-// Frontend helper — calls our Vercel serverless function silently
 
 /**
- * sendLeadEmail — fires immediately when user clicks "Get My Quote"
- * Silent background call — never blocks the UI
+ * sendReminderEmail — fired when customer clicks "Get My Quote" on Step 0
+ * Sends a friendly "you didn't finish your quote" email to the CUSTOMER
+ * with a link back to the tool. Silent — never blocks the UI.
  */
-export const sendLeadEmail = async ({ name, phone, email, category }) => {
+export const sendReminderEmail = async ({ name, phone, email, category }) => {
   try {
     await fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'lead', name, phone, email, category }),
+      body: JSON.stringify({
+        type:     'reminder',
+        name,
+        phone,
+        email,
+        category,
+      }),
     });
   } catch (err) {
-    // Silent fail — never interrupt the user flow
-    console.error('Lead email failed silently:', err);
+    console.error('Reminder email failed silently:', err);
   }
 };
 
 /**
- * sendBookingEmail — fires on "Book Now" with full quote details for  the client
+ * sendBookingEmail — fired on "Book Now" with full quote details
+ * Sends to Liam with full breakdown.
  */
 export const sendBookingEmail = async ({
   contact,
@@ -27,12 +33,14 @@ export const sendBookingEmail = async ({
   bedrooms,
   hasConservatory,
   hasExtension,
+  hasLantern,
+  hasVelux,
+  veluxCount,
   selectedExtras,
   extrasLines,
   windowTotal,
   extrasTotal,
   address,
-  frequency,
 }) => {
   const extrasText = extrasLines?.length > 0
     ? extrasLines.map(s => `
@@ -43,58 +51,42 @@ export const sendBookingEmail = async ({
     : `<tr><td colspan="2" style="padding:6px 0;color:#94a3b8;font-size:13px;">None selected</td></tr>`;
 
   const htmlContent = `
-    <h2 style="color:#002664;font-size:16px;margin:0 0 16px;">Booking Details</h2>
+    <h2 style="color:#002664;font-size:16px;margin:0 0 16px;font-weight:900;">New Booking Request</h2>
     <table style="width:100%;border-collapse:collapse;">
-      <tr>
-        <td style="padding:6px 0;color:#64748b;font-size:13px;width:160px;">Name</td>
-        <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${contact.name}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;color:#64748b;font-size:13px;">Phone</td>
-        <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${contact.phone}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;color:#64748b;font-size:13px;">Email</td>
-        <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${contact.email}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;color:#64748b;font-size:13px;">Address</td>
-        <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">
-          ${address.line1}${address.line2 ? ', ' + address.line2 : ''}, ${address.postcode}
-        </td>
-      </tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;width:160px;">Name</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${contact.name}</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">Phone</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${contact.phone}</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">Email</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${contact.email}</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">Address</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${address.line1}${address.line2 ? ', ' + address.line2 : ''}, ${address.postcode}</td></tr>
     </table>
 
     <hr style="border:none;border-top:1px solid #e0f2fe;margin:16px 0;" />
 
-    <h3 style="color:#002664;font-size:14px;margin:0 0 12px;">Property Details</h3>
+    <h3 style="color:#002664;font-size:14px;margin:0 0 12px;font-weight:900;">Property Details</h3>
     <table style="width:100%;border-collapse:collapse;">
-      <tr>
-        <td style="padding:6px 0;color:#64748b;font-size:13px;width:160px;">Property Type</td>
-        <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;text-transform:capitalize;">${propertyType}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;color:#64748b;font-size:13px;">Bedrooms</td>
-        <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${bedrooms}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;color:#64748b;font-size:13px;">Conservatory</td>
-        <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${hasConservatory ? 'Yes (+£5)' : 'No'}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;color:#64748b;font-size:13px;">Extension / 3-Storey</td>
-        <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${hasExtension ? 'Yes (+£3)' : 'No'}</td>
-      </tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;width:160px;">Property Type</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;text-transform:capitalize;">${propertyType}</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">Bedrooms</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${bedrooms}</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">Conservatory</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${hasConservatory ? 'Yes' : 'No'}</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">Extension / 3-Storey</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${hasExtension ? 'Yes' : 'No'}</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">Roof Lantern</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${hasLantern ? 'Yes' : 'No'}</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">Velux Windows</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${hasVelux ? `Yes — ${veluxCount || 1}` : 'No'}</td></tr>
     </table>
 
     <hr style="border:none;border-top:1px solid #e0f2fe;margin:16px 0;" />
 
-    <h3 style="color:#002664;font-size:14px;margin:0 0 12px;">Quote Breakdown</h3>
+    <h3 style="color:#002664;font-size:14px;margin:0 0 12px;font-weight:900;">Quote Breakdown</h3>
     <table style="width:100%;border-collapse:collapse;">
-      <tr>
-        <td style="padding:6px 0;color:#64748b;font-size:13px;">Window Cleaning (6-weekly)</td>
-        <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;text-align:right;">£${windowTotal} per visit</td>
-      </tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">Window Cleaning (6-weekly)</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;text-align:right;">£${windowTotal} per visit</td></tr>
       ${extrasText}
     </table>
 
@@ -114,11 +106,11 @@ export const sendBookingEmail = async ({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type: 'booking',
-        name: contact.name,
-        phone: contact.phone,
-        email: contact.email,
-        category: 'residential',
+        type:        'booking',
+        name:        contact.name,
+        phone:       contact.phone,
+        email:       contact.email,
+        category:    'residential',
         htmlContent,
       }),
     });
