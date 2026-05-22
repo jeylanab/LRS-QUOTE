@@ -17,6 +17,7 @@ export const pricingConfig = {
     extension:    3,
     lantern:      7,
     velux:        3,
+    frontOnly:    18, // minimum charge for front of house only (no rear access)
   },
 
   additionalServices: {
@@ -97,14 +98,17 @@ export const getServiceTierKey = (propertyType, bedrooms) => {
 };
 
 export const calculateWindowTotal = (data) => {
-  const { propertyType, bedrooms, hasConservatory, hasExtension, hasLantern, hasVelux, veluxCount } = data;
+  const { propertyType, bedrooms, hasConservatory, hasExtension, hasLantern, hasVelux, veluxCount, hasGateAccess } = data;
   if (!propertyType || !bedrooms) return 0;
   const base              = pricingConfig.windowCleaning[propertyType]?.[bedrooms] || 0;
   const conservatoryAddon = hasConservatory ? pricingConfig.windowAddons.conservatory : 0;
   const extensionAddon    = hasExtension    ? pricingConfig.windowAddons.extension    : 0;
   const lanternAddon      = hasLantern      ? pricingConfig.windowAddons.lantern      : 0;
   const veluxAddon        = hasVelux        ? (parseInt(veluxCount) || 1) * pricingConfig.windowAddons.velux : 0;
-  return base + conservatoryAddon + extensionAddon + lanternAddon + veluxAddon;
+  const total             = base + conservatoryAddon + extensionAddon + lanternAddon + veluxAddon;
+  // Apply £18 minimum for front-only (no gate access)
+  if (hasGateAccess === false) return Math.max(total, pricingConfig.windowAddons.frontOnly);
+  return total;
 };
 
 export const getAdditionalServicePrice = (serviceKey, tierKey, hasExtra) => {

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { User, Phone, Mail, ArrowRight, Building2, Home, Check, ChevronDown } from 'lucide-react';
 import lrsLogo from '../assets/lrslogo.png';
+import { sendReminderEmail } from '../utils/sendReminderEmail';
 
 
 const inputBase = 'w-full bg-white border-2 border-sky-mid rounded-2xl px-4 py-3.5 text-navy font-semibold text-base outline-none transition-all duration-200 placeholder:text-navy/25 focus:border-navy focus:shadow-active';
@@ -45,6 +46,8 @@ const Step0Contact = ({ onNext }) => {
 
     // Send reminder email to customer silently
     
+    // Fire reminder email silently to customer in background
+    sendReminderEmail({ name: form.name, email: form.email });
     onNext({ ...form, consent, tandc });
   };
 
