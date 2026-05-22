@@ -1,31 +1,8 @@
 // src/utils/sendEmail.js
 
 /**
- * sendReminderEmail — fired when customer clicks "Get My Quote" on Step 0
- * Sends a friendly "you didn't finish your quote" email to the CUSTOMER
- * with a link back to the tool. Silent — never blocks the UI.
- */
-export const sendReminderEmail = async ({ name, phone, email, category }) => {
-  try {
-    await fetch('/api/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type:     'reminder',
-        name,
-        phone,
-        email,
-        category,
-      }),
-    });
-  } catch (err) {
-    console.error('Reminder email failed silently:', err);
-  }
-};
-
-/**
- * sendBookingEmail — fired on "Book Now" with full quote details
- * Sends to Liam with full breakdown.
+ * sendBookingEmail — fired on "Book Now"
+ * Sends full quote breakdown to Liam
  */
 export const sendBookingEmail = async ({
   contact,
@@ -36,7 +13,6 @@ export const sendBookingEmail = async ({
   hasLantern,
   hasVelux,
   veluxCount,
-  selectedExtras,
   extrasLines,
   windowTotal,
   extrasTotal,
@@ -59,6 +35,8 @@ export const sendBookingEmail = async ({
           <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${contact.phone}</td></tr>
       <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">Email</td>
           <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${contact.email}</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">How they heard</td>
+          <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${contact.hearAboutUs || '—'}</td></tr>
       <tr><td style="padding:6px 0;color:#64748b;font-size:13px;">Address</td>
           <td style="padding:6px 0;color:#002664;font-weight:bold;font-size:13px;">${address.line1}${address.line2 ? ', ' + address.line2 : ''}, ${address.postcode}</td></tr>
     </table>
@@ -106,15 +84,15 @@ export const sendBookingEmail = async ({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type:        'booking',
-        name:        contact.name,
-        phone:       contact.phone,
-        email:       contact.email,
-        category:    'residential',
+        type:     'booking',
+        name:     contact.name,
+        phone:    contact.phone,
+        email:    contact.email,
+        category: 'residential',
         htmlContent,
       }),
     });
   } catch (err) {
-    console.error('Booking email failed silently:', err);
+    console.error('Booking email failed:', err);
   }
 };
