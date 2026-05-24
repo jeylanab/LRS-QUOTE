@@ -14,19 +14,20 @@ const HEAR_OPTIONS = [
 ];
 
 const Step0Contact = ({ onNext }) => {
-  const [form, setForm]           = useState({ name: '', phone: '+44 ', email: '', category: '', hearAboutUs: '' });
-  const [consent, setConsent]     = useState(false);
-  const [tandc, setTandC]         = useState(false);
-  const [errors, setErrors]       = useState({});
-  const [shakeKey, setShakeKey]   = useState(0);
+  const [form, setForm]                 = useState({ name: '', phone: '+44 ', email: '', category: '', hearAboutUs: '' });
+  const [consent, setConsent]           = useState(false);
+  const [tandc, setTandC]               = useState(false);
+  const [errors, setErrors]             = useState({});
+  const [shakeKey, setShakeKey]         = useState(0);
   const [reminderSent, setReminderSent] = useState(false);
+  const [sending, setSending]           = useState(false);
 
   const set = (key, val) => {
     setForm(f => ({ ...f, [key]: val }));
     setErrors(e => ({ ...e, [key]: '' }));
   };
 
-  // ── Fire reminder as soon as they type a valid email and move away ────────
+  // Fire reminder as soon as they finish typing email — catches early dropoffs
   const handleEmailBlur = (e) => {
     const val = e.target.value.trim();
     if (val && val.includes('@') && !reminderSent) {
@@ -35,17 +36,27 @@ const Step0Contact = ({ onNext }) => {
     }
   };
 
-  const handleNext = () => {
+  // Also await reminder on button click to ensure it completes before navigating
+  const handleNext = async () => {
     const e = {};
-    if (!form.name.trim())                                e.name       = 'Full name is required';
+    if (!form.name.trim())                                e.name        = 'Full name is required';
     const digits = form.phone.replace(/\D/g, '');
-    if (digits.length < 10 || digits.length > 12)        e.phone      = 'Phone number must be 10–12 digits';
-    if (!form.email.trim() || !form.email.includes('@'))  e.email      = 'Valid email is required';
+    if (digits.length < 10 || digits.length > 12)        e.phone       = 'Phone number must be 10–12 digits';
+    if (!form.email.trim() || !form.email.includes('@'))  e.email       = 'Valid email is required';
     if (!form.hearAboutUs)                                e.hearAboutUs = 'Please let us know how you heard about us';
-    if (!form.category)                                   e.category   = 'Please select residential or commercial';
-    if (!consent)                                         e.consent    = 'Please give consent to continue';
-    if (!tandc)                                           e.tandc      = 'Please accept the terms and conditions';
+    if (!form.category)                                   e.category    = 'Please select residential or commercial';
+    if (!consent)                                         e.consent     = 'Please give consent to continue';
+    if (!tandc)                                           e.tandc       = 'Please accept the terms and conditions';
     if (Object.keys(e).length > 0) { setErrors(e); setShakeKey(k => k + 1); return; }
+
+    // If reminder hasn't been sent yet, await it now before proceeding
+    if (!reminderSent) {
+      setSending(true);
+      await sendReminderEmail({ name: form.name, email: form.email });
+      setReminderSent(true);
+      setSending(false);
+    }
+
     onNext({ ...form, consent, tandc });
   };
 
@@ -107,7 +118,7 @@ const Step0Contact = ({ onNext }) => {
           <p className="text-[10px] text-navy/30 font-medium mt-1 ml-1">Must be 10–12 digits</p>
         </div>
 
-        {/* Email — fires reminder on blur */}
+        {/* Email */}
         <div className="animate-drop-in delay-4">
           <div className="relative">
             <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-navy/30 pointer-events-none" />
@@ -168,9 +179,13 @@ const Step0Contact = ({ onNext }) => {
           </CheckBox>
         </div>
 
-        <button onClick={handleNext}
-          className="animate-drop-in delay-7 mt-1 w-full bg-navy text-white py-4 rounded-2xl font-black text-base uppercase tracking-wide flex items-center justify-center gap-2 hover:bg-navy-light transition-all shadow-btn active:scale-[0.98]">
-          Get My Quote <ArrowRight size={18} strokeWidth={2.5} />
+        <button
+          onClick={handleNext}
+          disabled={sending}
+          className="animate-drop-in delay-7 mt-1 w-full bg-navy text-white py-4 rounded-2xl font-black text-base uppercase tracking-wide flex items-center justify-center gap-2 hover:bg-navy-light transition-all shadow-btn active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed">
+          {sending
+            ? <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Just a moment…</span>
+            : <>Get My Quote <ArrowRight size={18} strokeWidth={2.5} /></>}
         </button>
 
         <p className="animate-drop-in delay-7 text-[10px] text-navy/30 font-medium text-center">
