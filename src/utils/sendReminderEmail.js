@@ -1,10 +1,9 @@
 // src/utils/sendReminderEmail.js
-// Uses EmailJS — free, browser-based, no domain verification needed
-// Sends reminder email directly to the customer
+// EmailJS keys are safe to hardcode — they are public keys, not secrets
 
-const EMAILJS_PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-const EMAILJS_SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const EMAILJS_PUBLIC_KEY  = 'L_HUUCitUHX9S_4CF';
+const EMAILJS_SERVICE_ID  = 'service_rpo18jn';
+const EMAILJS_TEMPLATE_ID = 'template_lsn708n';
 
 const loadEmailJS = () => new Promise((resolve, reject) => {
   if (window.emailjs) { resolve(); return; }
@@ -19,13 +18,12 @@ export const sendReminderEmail = async ({ name, email }) => {
   try {
     await loadEmailJS();
     await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_name:  name?.split(' ')[0] || 'there',
-      to_email: email,
-      quote_url: import.meta.env.VITE_APP_URL || 'https://lrs-quote.vercel.app',
+      to_name:   name?.split(' ')[0] || 'there',
+      to_email:  email,
+      quote_url: 'https://lrs-quote.vercel.app',
     });
-    console.log('Reminder email sent to customer');
+    console.log('Reminder sent to:', email);
   } catch (err) {
-    // Silent fail — never block the user
-    console.error('Reminder email failed:', err);
+    console.error('Reminder failed:', err);
   }
 };
