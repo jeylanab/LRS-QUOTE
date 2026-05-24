@@ -4,32 +4,35 @@ import { User, Phone, Mail, ArrowRight, Building2, Home, Check, ChevronDown } fr
 import lrsLogo from '../assets/lrslogo.png';
 import { sendReminderEmail } from '../utils/sendReminderEmail';
 
-
 const inputBase = 'w-full bg-white border-2 border-sky-mid rounded-2xl px-4 py-3.5 text-navy font-semibold text-base outline-none transition-all duration-200 placeholder:text-navy/25 focus:border-navy focus:shadow-active';
 const inputErr  = 'w-full bg-white border-2 border-error rounded-2xl px-4 py-3.5 text-navy font-semibold text-base outline-none placeholder:text-navy/25';
 const errMsg    = 'text-error text-[10px] font-black uppercase tracking-wide mt-1 animate-shake';
 
 const HEAR_OPTIONS = [
-  'Google',
-  'Facebook',
-  'Leaflet',
-  'Recommendation',
-  'Door Knocked',
-  'I saw your van',
-  'Word of Mouth',
-  'Other',
+  'Google', 'Facebook', 'Leaflet', 'Recommendation',
+  'Door Knocked', 'I saw your van', 'Word of Mouth', 'Other',
 ];
 
 const Step0Contact = ({ onNext }) => {
-  const [form, setForm]         = useState({ name: '', phone: '+44 ', email: '', category: '', hearAboutUs: '' });
-  const [consent, setConsent]   = useState(false);
-  const [tandc, setTandC]       = useState(false);
-  const [errors, setErrors]     = useState({});
-  const [shakeKey, setShakeKey] = useState(0);
+  const [form, setForm]           = useState({ name: '', phone: '+44 ', email: '', category: '', hearAboutUs: '' });
+  const [consent, setConsent]     = useState(false);
+  const [tandc, setTandC]         = useState(false);
+  const [errors, setErrors]       = useState({});
+  const [shakeKey, setShakeKey]   = useState(0);
+  const [reminderSent, setReminderSent] = useState(false);
 
   const set = (key, val) => {
     setForm(f => ({ ...f, [key]: val }));
     setErrors(e => ({ ...e, [key]: '' }));
+  };
+
+  // ── Fire reminder as soon as they type a valid email and move away ────────
+  const handleEmailBlur = (e) => {
+    const val = e.target.value.trim();
+    if (val && val.includes('@') && !reminderSent) {
+      sendReminderEmail({ name: form.name, email: val });
+      setReminderSent(true);
+    }
   };
 
   const handleNext = () => {
@@ -43,11 +46,6 @@ const Step0Contact = ({ onNext }) => {
     if (!consent)                                         e.consent    = 'Please give consent to continue';
     if (!tandc)                                           e.tandc      = 'Please accept the terms and conditions';
     if (Object.keys(e).length > 0) { setErrors(e); setShakeKey(k => k + 1); return; }
-
-    // Send reminder email to customer silently
-    
-    // Fire reminder email silently to customer in background
-    sendReminderEmail({ name: form.name, email: form.email });
     onNext({ ...form, consent, tandc });
   };
 
@@ -90,7 +88,8 @@ const Step0Contact = ({ onNext }) => {
         <div className="animate-drop-in delay-2">
           <div className="relative">
             <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-navy/30 pointer-events-none" />
-            <input type="text" placeholder="Full Name*" className={`${errors.name ? inputErr : inputBase} pl-10`}
+            <input type="text" placeholder="Full Name*"
+              className={`${errors.name ? inputErr : inputBase} pl-10`}
               value={form.name} onChange={e => set('name', e.target.value)} />
           </div>
           {errors.name && <p key={`n-${shakeKey}`} className={errMsg}>{errors.name}</p>}
@@ -100,19 +99,24 @@ const Step0Contact = ({ onNext }) => {
         <div className="animate-drop-in delay-3">
           <div className="relative">
             <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-navy/30 pointer-events-none" />
-            <input type="tel" placeholder="Phone Number*" className={`${errors.phone ? inputErr : inputBase} pl-10`}
+            <input type="tel" placeholder="Phone Number*"
+              className={`${errors.phone ? inputErr : inputBase} pl-10`}
               value={form.phone} onChange={e => set('phone', e.target.value)} />
           </div>
           {errors.phone && <p key={`p-${shakeKey}`} className={errMsg}>{errors.phone}</p>}
           <p className="text-[10px] text-navy/30 font-medium mt-1 ml-1">Must be 10–12 digits</p>
         </div>
 
-        {/* Email */}
+        {/* Email — fires reminder on blur */}
         <div className="animate-drop-in delay-4">
           <div className="relative">
             <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-navy/30 pointer-events-none" />
-            <input type="email" placeholder="Email Address*" className={`${errors.email ? inputErr : inputBase} pl-10`}
-              value={form.email} onChange={e => set('email', e.target.value)} />
+            <input type="email" placeholder="Email Address*"
+              className={`${errors.email ? inputErr : inputBase} pl-10`}
+              value={form.email}
+              onChange={e => set('email', e.target.value)}
+              onBlur={handleEmailBlur}
+            />
           </div>
           {errors.email && <p key={`e-${shakeKey}`} className={errMsg}>{errors.email}</p>}
         </div>
@@ -122,8 +126,7 @@ const Step0Contact = ({ onNext }) => {
           <div className="relative">
             <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-navy/30 pointer-events-none" />
             <select
-              className={`${errors.hearAboutUs ? inputErr : inputBase} appearance-none pr-10 cursor-pointer
-                ${form.hearAboutUs ? 'text-navy' : 'text-navy/25'}`}
+              className={`${errors.hearAboutUs ? inputErr : inputBase} appearance-none pr-10 cursor-pointer ${form.hearAboutUs ? 'text-navy' : 'text-navy/25'}`}
               value={form.hearAboutUs}
               onChange={e => set('hearAboutUs', e.target.value)}
             >
